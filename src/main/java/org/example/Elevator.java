@@ -4,6 +4,7 @@ package org.example;
 import java.util.TreeSet;
 
 public class Elevator {
+
   private int currentFloor = 0;
   private Direction currentDirection = Direction.UP;
   private State currentState = State.IDLE;
@@ -178,31 +179,63 @@ public class Elevator {
 
   }
 
-}
+  public void addJob(Request request) {
+    if (currentState == State.IDLE) {
+      currentState = State.MOVING;
+      currentDirection = request.getExternalRequest().getDirectionToGo();
+      currentJobs.add(request);
+    } else if (currentState == State.MOVING) {
 
-class ProcessJobWorker implements Runnable {
-
-  private Elevator elevator;
-
-  ProcessJobWorker(Elevator elevator) {
-    this.elevator = elevator;
+      if (request.getExternalRequest().getDirectionToGo() != currentDirection) {
+        addtoPendingJobs(request);
+      } else if (request.getExternalRequest().getDirectionToGo() == currentDirection) {
+        if (currentDirection == Direction.UP
+            && request.getInternalRequest().getDestinationFloor() < currentFloor) {
+          addtoPendingJobs(request);
+        } else if (currentDirection == Direction.DOWN
+            && request.getInternalRequest().getDestinationFloor() > currentFloor) {
+          addtoPendingJobs(request);
+        } else {
+          currentJobs.add(request);
+        }
+      }
+    }
   }
 
-  @Override
-  public void run() {
-    /**
-     * start the elevator
-     */
-    elevator.startElevator();
+  public void addtoPendingJobs(Request request) {
+    if (request.getExternalRequest().getDirectionToGo() == Direction.UP) {
+      System.out.println("Add to pending up jobs");
+      upPendingJobs.add(request);
+    } else {
+      System.out.println("Add to pending down jobs");
+      downPendingJobs.add(request);
+    }
+  }
+}
+
+  class ProcessJobWorker implements Runnable {
+
+    private Elevator elevator;
+
+    ProcessJobWorker(Elevator elevator) {
+      this.elevator = elevator;
+    }
+
+    @Override
+    public void run() {
+      /**
+       * start the elevator
+       */
+      elevator.startElevator();
+    }
+
   }
 
-}
 
+  enum State {
+    MOVING, STOPPED, IDLE
+  }
 
-enum State {
-  MOVING, STOPPED, IDLE
-}
-
-enum Direction {
-  UP, DOWN
-}
+  enum Direction {
+    UP, DOWN
+  }
