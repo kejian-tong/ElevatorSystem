@@ -16,3 +16,6 @@ This project simulates an elevator system. It's written in Java and built with M
 
 ## License
 [MIT](https://choosealicense.com/licenses/mit/)
+
+## References
+[Ref](https://www.javastructures.com/design/elevator) 
